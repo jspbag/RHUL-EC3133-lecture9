@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="pandoc">
+  <title>Shrinkage estimators</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+  <link rel="stylesheet" href="index_files/reveal.js-3.3.0.1/css/reveal.css"/>
+
+
+
+<link rel="stylesheet" href="index_files/reveal.js-3.3.0.1/css/theme/solarized.css" id="theme">
+
+
+  <!-- some tweaks to reveal css -->
+  <style type="text/css">
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.5em;  }
+    .reveal h3 { font-size: 1.25em;	}
+    .reveal h4 { font-size: 1em;	}
+
+    .reveal .slides>section,
+    .reveal .slides>section>section {
+      padding: 0px 0px;
+    }
+
+
+
+    .reveal table {
+      border-width: 1px;
+      border-spacing: 2px;
+      border-style: dotted;
+      border-color: gray;
+      border-collapse: collapse;
+      font-size: 0.7em;
+    }
+
+    .reveal table th {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      font-weight: bold;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+    .reveal table td {
+      border-width: 1px;
+      padding-left: 10px;
+      padding-right: 25px;
+      border-style: dotted;
+      border-color: gray;
+    }
+
+
+  </style>
+
+    <style type="text/css">code{white-space: pre;}</style>
+
+    <link rel="stylesheet" href="mystyle.css"/>
+
+<!-- Printing and PDF exports -->
+<script id="paper-css" type="application/dynamic-css">
+
+/* Default Print Stylesheet Template
+   by Rob Glazebrook of CSSnewbie.com
+   Last Updated: June 4, 2008
+
+   Feel free (nay, compelled) to edit, append, and
+   manipulate this file as you see fit. */
+
+
+@media print {
+
+	/* SECTION 1: Set default width, margin, float, and
+	   background. This prevents elements from extending
+	   beyond the edge of the printed page, and prevents
+	   unnecessary background images from printing */
+	html {
+		background: #fff;
+		width: auto;
+		height: auto;
+		overflow: visible;
+	}
+	body {
+		background: #fff;
+		font-size: 20pt;
+		width: auto;
+		height: auto;
+		border: 0;
+		margin: 0 5%;
+		padding: 0;
+		overflow: visible;
+		float: none !important;
+	}
+
+	/* SECTION 2: Remove any elements not needed in print.
+	   This would include navigation, ads, sidebars, etc. */
+	.nestedarrow,
+	.controls,
+	.fork-reveal,
+	.share-reveal,
+	.state-background,
+	.reveal .progress,
+	.reveal .backgrounds {
+		display: none !important;
+	}
+
+	/* SECTION 3: Set body font face, size, and color.
+	   Consider using a serif font for readability. */
+	body, p, td, li, div {
+		font-size: 20pt!important;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		color: #000;
+	}
+
+	/* SECTION 4: Set heading font face, sizes, and color.
+	   Differentiate your headings from your body text.
+	   Perhaps use a large sans-serif for distinction. */
+	h1,h2,h3,h4,h5,h6 {
+		color: #000!important;
+		height: auto;
+		line-height: normal;
+		font-family: Georgia, "Times New Roman", Times, serif !important;
+		text-shadow: 0 0 0 #000 !important;
+		text-align: left;
+		letter-spacing: normal;
+	}
+	/* Need to reduce the size of the fonts for printing */
+	h1 { font-size: 28pt !important;  }
+	h2 { font-size: 24pt !important; }
+	h3 { font-size: 22pt !important; }
+	h4 { font-size: 22pt !important; font-variant: small-caps; }
+	h5 { font-size: 21pt !important; }
+	h6 { font-size: 20pt !important; font-style: italic; }
+
+	/* SECTION 5: Make hyperlinks more usable.
+	   Ensure links are underlined, and consider appending
+	   the URL to the end of the link for usability. */
+	a:link,
+	a:visited {
+		color: #000 !important;
+		font-weight: bold;
+		text-decoration: underline;
+	}
+	/*
+	.reveal a:link:after,
+	.reveal a:visited:after {
+		content: " (" attr(href) ") ";
+		color: #222 !important;
+		font-size: 90%;
+	}
+	*/
+
+
+	/* SECTION 6: more reveal.js specific additions by @skypanther */
+	ul, ol, div, p {
+		visibility: visible;
+		position: static;
+		width: auto;
+		height: auto;
+		display: block;
+		overflow: visible;
+		margin: 0;
+		text-align: left !important;
+	}
+	.reveal pre,
+	.reveal table {
+		margin-left: 0;
+		margin-right: 0;
+	}
+	.reveal pre code {
+		padding: 20px;
+		border: 1px solid #ddd;
+	}
+	.reveal blockquote {
+		margin: 20px 0;
+	}
+	.reveal .slides {
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 0 !important;
+		zoom: 1 !important;
+
+		overflow: visible !important;
+		display: block !important;
+
+		text-align: left !important;
+		-webkit-perspective: none;
+		   -moz-perspective: none;
+		    -ms-perspective: none;
+		        perspective: none;
+
+		-webkit-perspective-origin: 50% 50%;
+		   -moz-perspective-origin: 50% 50%;
+		    -ms-perspective-origin: 50% 50%;
+		        perspective-origin: 50% 50%;
+	}
+	.reveal .slides section {
+		visibility: visible !important;
+		position: static !important;
+		width: auto !important;
+		height: auto !important;
+		display: block !important;
+		overflow: visible !important;
+
+		left: 0 !important;
+		top: 0 !important;
+		margin-left: 0 !important;
+		margin-top: 0 !important;
+		padding: 60px 20px !important;
+		z-index: auto !important;
+
+		opacity: 1 !important;
+
+		page-break-after: always !important;
+
+		-webkit-transform-style: flat !important;
+		   -moz-transform-style: flat !important;
+		    -ms-transform-style: flat !important;
+		        transform-style: flat !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+
+		-webkit-transition: none !important;
+		   -moz-transition: none !important;
+		    -ms-transition: none !important;
+		        transition: none !important;
+	}
+	.reveal .slides section.stack {
+		padding: 0 !important;
+	}
+	.reveal section:last-of-type {
+		page-break-after: avoid !important;
+	}
+	.reveal section .fragment {
+		opacity: 1 !important;
+		visibility: visible !important;
+
+		-webkit-transform: none !important;
+		   -moz-transform: none !important;
+		    -ms-transform: none !important;
+		        transform: none !important;
+	}
+	.reveal section img {
+		display: block;
+		margin: 15px 0px;
+		background: rgba(255,255,255,1);
+		border: 1px solid #666;
+		box-shadow: none;
+	}
+
+	.reveal section small {
+		font-size: 0.8em;
+	}
+
+}  
+</script>
+
+
+<script id="pdf-css" type="application/dynamic-css">
+    
+/**
+ * This stylesheet is used to print reveal.js
+ * presentations to PDF.
+ *
+ * https://github.com/hakimel/reveal.js#pdf-export
+ */
+
+* {
+	-webkit-print-color-adjust: exact;
+}
+
+body {
+	margin: 0 auto !important;
+	border: 0;
+	padding: 0;
+	float: none !important;
+	overflow: visible;
+}
+
+html {
+	width: 100%;
+	height: 100%;
+	overflow: visible;
+}
+
+/* Remove any elements not needed in print. */
+.nestedarrow,
+.reveal .controls,
+.reveal .progress,
+.reveal .playback,
+.reveal.overview,
+.fork-reveal,
+.share-reveal,
+.state-background {
+	display: none !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	text-shadow: 0 0 0 #000 !important;
+}
+
+.reveal pre code {
+	overflow: hidden !important;
+	font-family: Courier, 'Courier New', monospace !important;
+}
+
+ul, ol, div, p {
+	visibility: visible;
+	position: static;
+	width: auto;
+	height: auto;
+	display: block;
+	overflow: visible;
+	margin: auto;
+}
+.reveal {
+	width: auto !important;
+	height: auto !important;
+	overflow: hidden !important;
+}
+.reveal .slides {
+	position: static;
+	width: 100%;
+	height: auto;
+
+	left: auto;
+	top: auto;
+	margin: 0 !important;
+	padding: 0 !important;
+
+	overflow: visible;
+	display: block;
+
+	-webkit-perspective: none;
+	   -moz-perspective: none;
+	    -ms-perspective: none;
+	        perspective: none;
+
+	-webkit-perspective-origin: 50% 50%; /* there isn't a none/auto value but 50-50 is the default */
+	   -moz-perspective-origin: 50% 50%;
+	    -ms-perspective-origin: 50% 50%;
+	        perspective-origin: 50% 50%;
+}
+
+.reveal .slides section {
+	page-break-after: always !important;
+
+	visibility: visible !important;
+	position: relative !important;
+	display: block !important;
+	position: relative !important;
+
+	margin: 0 !important;
+	padding: 0 !important;
+	box-sizing: border-box !important;
+	min-height: 1px;
+
+	opacity: 1 !important;
+
+	-webkit-transform-style: flat !important;
+	   -moz-transform-style: flat !important;
+	    -ms-transform-style: flat !important;
+	        transform-style: flat !important;
+
+	-webkit-transform: none !important;
+	   -moz-transform: none !important;
+	    -ms-transform: none !important;
+	        transform: none !important;
+}
+
+.reveal section.stack {
+	margin: 0 !important;
+	padding: 0 !important;
+	page-break-after: avoid !important;
+	height: auto !important;
+	min-height: auto !important;
+}
+
+.reveal img {
+	box-shadow: none;
+}
+
+.reveal .roll {
+	overflow: visible;
+	line-height: 1em;
+}
+
+/* Slide backgrounds are placed inside of their slide when exporting to PDF */
+.reveal section .slide-background {
+	display: block !important;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: -1;
+}
+
+/* All elements should be above the slide-background */
+.reveal section>* {
+	position: relative;
+	z-index: 1;
+}
+
+/* Display slide speaker notes when 'showNotes' is enabled */
+.reveal .speaker-notes-pdf {
+	display: block;
+	width: 100%;
+	max-height: none;
+	left: auto;
+	top: auto;
+	z-index: 100;
+}
+
+/* Display slide numbers when 'slideNumber' is enabled */
+.reveal .slide-number-pdf {
+	display: block;
+	position: absolute;
+	font-size: 14px;
+}
+
+</script>
+
+
+<script>
+var style = document.createElement( 'style' );
+style.type = 'text/css';
+var style_script_id = window.location.search.match( /print-pdf/gi ) ? 'pdf-css' : 'paper-css';
+var style_script = document.getElementById(style_script_id).text;
+style.innerHTML = style_script;
+document.getElementsByTagName('head')[0].appendChild(style);
+</script>
+
+    <link href="index_files/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+    <link href="index_files/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+</head>
+<body>
+  <div class="reveal">
+    <div class="slides">
+
+
+<section class="slide level2">
+
+<section>
+<h1>
+Shrinkage estimators
+</h1>
+<p>Based on Stock and Watson, ch. 14</p>
+<p><br></p>
+<h2>
+<a href="mailto:jesper.bagger@rhul.ac.uk">Jesper Bagger</a>
+</h2>
+<h3>
+EC3133 | Royal Holloway | 2020/21
+</h3>
+</section>
+</section>
+<section id="outline" class="slide level2">
+<h2>Outline</h2>
+<ol type="1">
+<li><p>Shrinkage estimators</p></li>
+<li><p>Estimating the <span class="math inline">\(MSPE\)</span></p></li>
+<li><p>Ridge regression</p></li>
+<li><p>Lasso regression</p></li>
+</ol>
+</section>
+<section><section id="shrinkage-estimators" class="title-slide slide level1"><h1>Shrinkage estimators</h1></section><section id="predictive-accuracy-and-the-variance-bias-trade-off" class="slide level2">
+<h2>Predictive accuracy and the variance-bias trade-off</h2>
+<ul>
+<li><p>Write <span class="math inline">\(Y^{\mathrm{oos}} = \mu_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}} + u^{\mathrm{oos}}\)</span> with <span class="math inline">\(\mathrm{E}(u^{\mathrm{oos}}|\mathbf{X}^{\text{oos}}) = 0\)</span></p></li>
+<li><p>Let <span class="math inline">\(\hat{\mu}_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}}\)</span> be an estimator of the oracle <span class="math inline">\(\mu_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}}\)</span></p>
+<p><span class="math display">\[\begin{multline*}
+MSPE = \underset{\text{Oracle error}}{\underbrace{\mathrm{var}\left( u^{\mathrm{oos}} \right)}} + \underset{\text{Estimator precision}}{\underbrace{\mathrm{var}\left( \hat{\mu}_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}} \right)}} \\
++ \big[ \underset{\text{Estimator bias}}{\underbrace{\mathrm{E}\left( \hat{\mu}_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}}\right)  - \mu_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}} }} \big]^2
+\end{multline*}\]</span></p></li>
+<li><p>A trade-off between estimator bias and precision may arise</p></li>
+</ul>
+</section><section id="shrinkage-estimators-1" class="slide level2">
+<h2>Shrinkage estimators</h2>
+<ul>
+<li><p>A <strong>shrinkage estimator</strong> introduces bias by “shrinking” the estimator towards a specific number, but thereby also reduces the variance of the estimator</p></li>
+<li><p>Let <span class="math inline">\(\hat{\beta}_j\)</span> be the OLS estimator of <span class="math inline">\(\beta_j\)</span> and consider <span class="math inline">\(\tilde{\beta}_j = c \hat{\beta}_j\)</span> for some <strong>shrinkage factor</strong> <span class="math inline">\(0 &lt; c &lt; 1\)</span>; then</p>
+<p><span class="math display">\[\mathrm{E}(\tilde{\beta}_j) = c \mathrm{E}(\hat{\beta}_j) = c \beta_j \neq \beta_j\]</span></p>
+<p><span class="math display">\[\mathrm{var}(\tilde{\beta}_j) = c^2 \mathrm{var}(\hat{\beta}_j) &lt; \mathrm{var}(\hat{\beta}_j)\]</span></p></li>
+<li><p>Because of the variance-bias trade-off in predictive accuracy, a shrinkage estimator may have lower <span class="math inline">\(MSPE\)</span> than the OLS estimator</p></li>
+</ul>
+</section></section>
+<section><section id="estimating-the-mspe" class="title-slide slide level1"><h1>Estimating the <span class="math inline">\(MSPE\)</span></h1></section><section id="estimating-the-mspe-1" class="slide level2">
+<h2>Estimating the <span class="math inline">\(MSPE\)</span></h2>
+<ul>
+<li><p>To use the bias-variance trade-off to improve prediction we need the <span class="math inline">\(MSPE\)</span></p></li>
+<li><p>The <span class="math inline">\(MSPE\)</span> is an unknown population expectation; however, it can be estimated from a sample of data</p>
+<ul>
+<li><p>Split sample estimator</p></li>
+<li><p><span class="math inline">\(m\)</span>-fold cross validation</p></li>
+</ul></li>
+</ul>
+</section><section id="split-sample-estimator" class="slide level2">
+<h2>Split sample estimator</h2>
+<ol type="1">
+<li><p>Split the <span class="math inline">\(n\)</span> observations in the sample into “training data” and “test data”</p></li>
+<li><p>Estimate (“train”) coefficients in the prediction function using the training data</p></li>
+<li><p>Construct prediction <span class="math inline">\(\hat{Y}\)</span> for each observation in the test data, and compute</p>
+<p><span class="math display">\[\widehat{MSPE} = \frac{1}{n_{\text{test}}} \sum_{i=1}^{n_{\text{test}}} (Y_i - \hat{Y}_i)^2,\]</span></p>
+<p>which is an estimator of the out-of-sample <span class="math inline">\(MSPE\)</span></p></li>
+</ol>
+</section><section id="m-fold-cross-validation" class="slide level2">
+<h2><span class="math inline">\(m\)</span>-fold cross validation</h2>
+<ol type="1">
+<li><p>Divide data into <span class="math inline">\(m\)</span> randomly chosen subsets of similar size</p></li>
+<li><p>Leave out subsample 1, compute coefficients on the remainder of the data</p></li>
+<li><p>Compute predictions <span class="math inline">\(\hat{Y}\)</span> and errors <span class="math inline">\(Y - \hat{Y}\)</span> for observations in subsample 1; compute <span class="math inline">\(\widehat{MSPE}_1 = \frac{1}{n_1} \sum_{i=1}^{n_1} (Y_i - \hat{Y}_i)^2,\)</span></p></li>
+<li><p>Repeat steps 2 and 3, leaving out subsample 2, 3, …, <span class="math inline">\(m\)</span>, which yields <span class="math inline">\(\widehat{MSPE}_j\)</span> for <span class="math inline">\(j=1,\ldots,m\)</span></p></li>
+<li><p>The <span class="math inline">\(m\)</span>-fold cross validation estimator of <span class="math inline">\(MSPE\)</span> is</p>
+<p><span class="math display">\[\widehat{MSPE}_{m\text{-fold cv}} = \frac{1}{m} \sum_{j=1}^{m} \left( \frac{n_j}{n/m} \right) \widehat{MSPE}_j\]</span></p></li>
+</ol>
+</section></section>
+<section><section id="ridge-regression" class="title-slide slide level1"><h1>Ridge regression</h1></section><section id="ridge-regression-1" class="slide level2">
+<h2>Ridge regression</h2>
+<ul>
+<li><p>The <strong>ridge regression</strong> shrinks the estimated coefficients toward 0 by penalizing large values of the estimate</p></li>
+<li><p>The ridge regression estimator minimizes the <strong>penalized sum of squared residuals</strong></p>
+<p><span class="math display">\[\frac{1}{n}\sum_{i=1}^n \left(Y_i - b_1 X_{1i} - \ldots - b_k X_{ki}\right)^2 + \lambda \sum_{j=1}^k b_j^2\]</span></p>
+<p>where <span class="math inline">\(\lambda &gt; 0\)</span> is the <strong>ridge shrinkage factor</strong></p></li>
+<li><p>The <strong>penalty term</strong> <span class="math inline">\(\lambda \sum_{j=1}^k b_j^2\)</span> penalizes the estimator for choosing a large coefficient estimate</p></li>
+</ul>
+</section><section id="estmating-the-ridge-shrinkage-factor" class="slide level2">
+<h2>Estmating the ridge shrinkage factor</h2>
+<ul>
+<li><p>The ridge regression depends on the shrinkage factor <span class="math inline">\(\lambda\)</span></p></li>
+<li><p>Choose <span class="math inline">\(\lambda\)</span> to minimize the estimated <span class="math inline">\(MSPE\)</span>, for example estimated by <span class="math inline">\(m\)</span>-fold cross validation</p></li>
+<li><p>Estimate <span class="math inline">\(MSPE\)</span> by <span class="math inline">\(m\)</span>-fold cross validation for different values of <span class="math inline">\(\lambda\)</span>; pick <span class="math inline">\(\lambda\)</span> to get the lowest estimated <span class="math inline">\(MSPE\)</span></p></li>
+</ul>
+</section></section>
+<section><section id="lasso-regression" class="title-slide slide level1"><h1>Lasso regression</h1></section><section id="sparse-models" class="slide level2">
+<h2>Sparse models</h2>
+<ul>
+<li><p>Ridge regression uses all the regressors to make the prediction (no coefficients are exactly zero!)</p></li>
+<li><p>Sometimes, only a few of many regressors are useful: use <strong>sparse model</strong> for prediction (less need for shrinkage)</p></li>
+<li><p><strong>Lasso regression</strong> provides a way to select the sparse model, estimating their coefficients with a modest amount of shrinkage</p></li>
+</ul>
+</section><section id="lasso-regression-1" class="slide level2">
+<h2>Lasso regression</h2>
+<ul>
+<li><p>The <strong>lasso estimator</strong> also minimizes the <strong>penalized sum of squared residuals</strong></p>
+<p><span class="math display">\[\frac{1}{n}\sum_{i=1}^n \left(Y_i - b_1 X_{1i} - \ldots - b_k X_{ki}\right)^2 + \lambda \sum_{j=1}^k |b_j|\]</span></p>
+<p>where <span class="math inline">\(\lambda &gt; 0\)</span> is the <strong>lasso shrinkage factor</strong></p></li>
+<li><p>The <strong>lasso penalty term</strong> <span class="math inline">\(\lambda \sum_{j=1}^k |b_j|\)</span> involves sum of the absolute values of the coefficient estimates</p></li>
+<li><p>The lasso penalty term implies that the lasso estimator will estimate many coefficient to exactly 0</p></li>
+<li><p>The <span class="math inline">\(\lambda\)</span> can be chosen to minimize estimated <span class="math inline">\(MSPE\)</span></p></li>
+</ul>
+</section></section>
+<section><section id="summary" class="title-slide slide level1"><h1>Summary</h1></section><section id="summary-1" class="slide level2">
+<h2>Summary</h2>
+<ul>
+<li><p>Shrinkage estimators utilize the bias-variance trade-off in prediction to improve predictions when there are many predictors relative to observations</p></li>
+<li><p>Ridge regression penalizes large coefficient values: biased, but low variance</p></li>
+<li><p>Lasso regression selects relevant predictors with some shrinkage: biased, but low variance</p></li>
+</ul>
+</section></section>
+    </div>
+  </div>
+
+  <script src="index_files/reveal.js-3.3.0.1/lib/js/head.min.js"></script>
+  <script src="index_files/reveal.js-3.3.0.1/js/reveal.js"></script>
+
+  <script>
+
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        // Display the page number of the current slide
+        slideNumber: true,
+        // Push each slide change to the browser history
+        history: true,
+        // Vertical centering of slides
+        center: true,
+        // Opens links in an iframe preview overlay
+        previewLinks: false,
+        // Transition style
+        transition: 'none', // none/fade/slide/convex/concave/zoom
+        // Transition style for full page slide backgrounds
+        backgroundTransition: 'none', // none/fade/slide/convex/concave/zoom
+
+        menu: {
+          numbers: true,
+          custom: false,
+          themes: false,
+          transitions: false
+        },
+
+
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'index_files/reveal.js-3.3.0.1/plugin/menu/menu.js', async: true },
+        ]
+      });
+    </script>
+  <!-- dynamically load mathjax for compatibility with self-contained -->
+  <script>
+    (function () {
+      var script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+      document.getElementsByTagName("head")[0].appendChild(script);
+    })();
+  </script>
+
+<script>
+  (function() {
+    if (window.jQuery) {
+      Reveal.addEventListener( 'slidechanged', function(event) {  
+        window.jQuery(event.previousSlide).trigger('hidden');
+        window.jQuery(event.currentSlide).trigger('shown');
+      });
+    }
+  })();
+</script>
+
+
+  </body>
+</html>

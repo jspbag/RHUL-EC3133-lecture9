@@ -1,0 +1,181 @@
+---
+pagetitle: Shrinkage estimators
+output: 
+  revealjs::revealjs_presentation:
+    incremental: false
+    theme: solarized
+    self_contained: false
+    # reveal_plugins: ["menu","notes","chalkboard"]
+    reveal_plugins: ["menu"]
+    highlight: pygments
+    center: true
+    transition: none
+    background_transition: none 
+    reveal_options:
+      # chalkboard:
+      #   theme: whiteboard
+      #   toggleNotesButton: true
+      #   toggleChalkboardButton: true
+      menu:
+        numbers: true
+      slideNumber: true
+      previewLinks: false
+    fig_caption: true
+    pandoc_args:
+    - --indented-code-classes
+    - lineNumbers
+    css: mystyle.css
+    
+--- 
+
+<section>
+
+<h1>Shrinkage estimators</h1>
+
+Based on Stock and Watson, ch. 14
+
+<br>
+
+<h2>[Jesper Bagger](mailto:jesper.bagger@rhul.ac.uk)</h2>
+
+<h3>EC3133 | Royal Holloway | 2020/21</h3>
+
+</section>
+
+```{r results='asis', echo=FALSE, include=FALSE}
+library(AER) # Include library Applied Econometrics with R package
+library(parameters) # Include parameters library for robust SEs
+```
+
+## Outline
+
+1. Shrinkage estimators
+
+2. Estimating the $MSPE$
+
+2. Ridge regression
+
+3. Lasso regression
+
+# Shrinkage estimators
+
+## Predictive accuracy and the variance-bias trade-off
+
+- Write $Y^{\mathrm{oos}} = \mu_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}} + u^{\mathrm{oos}}$ with $\mathrm{E}(u^{\mathrm{oos}}|\mathbf{X}^{\text{oos}}) = 0$
+  
+- Let $\hat{\mu}_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}}$ be an estimator of the oracle $\mu_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}}$
+
+  \begin{multline*}
+  MSPE = \underset{\text{Oracle error}}{\underbrace{\mathrm{var}\left( u^{\mathrm{oos}} \right)}} + \underset{\text{Estimator precision}}{\underbrace{\mathrm{var}\left( \hat{\mu}_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}} \right)}} \\
+  + \big[ \underset{\text{Estimator bias}}{\underbrace{\mathrm{E}\left( \hat{\mu}_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}}\right)  - \mu_{Y^{\text{oos}}|\mathbf{X}^{\text{oos}}} }} \big]^2
+  \end{multline*}
+
+- A trade-off between estimator bias and precision may arise
+
+## Shrinkage estimators
+
+- A **shrinkage estimator** introduces bias by "shrinking" the estimator towards a specific number, but thereby also reduces the variance of the estimator
+
+- Let $\hat{\beta}_j$ be the OLS estimator of $\beta_j$ and consider $\tilde{\beta}_j = c \hat{\beta}_j$ for some **shrinkage factor** $0 < c < 1$; then
+
+  $$\mathrm{E}(\tilde{\beta}_j) = c \mathrm{E}(\hat{\beta}_j) = c \beta_j \neq \beta_j$$
+
+  $$\mathrm{var}(\tilde{\beta}_j) = c^2 \mathrm{var}(\hat{\beta}_j) < \mathrm{var}(\hat{\beta}_j)$$
+
+- Because of the variance-bias trade-off in predictive accuracy, a shrinkage estimator may have lower $MSPE$ than the OLS estimator
+
+# Estimating the $MSPE$
+
+## Estimating the $MSPE$
+
+- To use the bias-variance trade-off to improve prediction we need the $MSPE$
+
+- The $MSPE$ is an unknown population expectation; however, it can be estimated from a sample of data
+
+  - Split sample estimator
+  
+  - $m$-fold cross validation
+  
+
+## Split sample estimator
+
+1. Split the $n$ observations in the sample into "training data" and "test data"
+
+2. Estimate ("train") coefficients in the prediction function using the training data
+
+3. Construct prediction $\hat{Y}$ for each observation in the test data, and compute
+
+   $$\widehat{MSPE} = \frac{1}{n_{\text{test}}} \sum_{i=1}^{n_{\text{test}}} (Y_i - \hat{Y}_i)^2,$$
+
+   which is an estimator of the out-of-sample $MSPE$
+
+## $m$-fold cross validation
+
+1. Divide data into $m$ randomly chosen subsets of similar size
+
+2. Leave out subsample 1, compute coefficients on the remainder of the data
+
+3. Compute predictions $\hat{Y}$ and errors $Y - \hat{Y}$ for observations in subsample 1; compute $\widehat{MSPE}_1 = \frac{1}{n_1} \sum_{i=1}^{n_1} (Y_i - \hat{Y}_i)^2,$
+
+4. Repeat steps 2 and 3, leaving out subsample 2, 3, ..., $m$, which yields $\widehat{MSPE}_j$ for $j=1,\ldots,m$
+
+5. The $m$-fold cross validation estimator of $MSPE$ is
+
+   $$\widehat{MSPE}_{m\text{-fold cv}} = \frac{1}{m} \sum_{j=1}^{m} \left( \frac{n_j}{n/m} \right) \widehat{MSPE}_j$$
+   
+   
+# Ridge regression
+
+## Ridge regression
+
+- The **ridge regression** shrinks the estimated coefficients toward 0 by penalizing large values of the estimate
+
+- The ridge regression estimator minimizes the **penalized sum of squared residuals**
+
+  $$\frac{1}{n}\sum_{i=1}^n \left(Y_i - b_1 X_{1i} - \ldots - b_k X_{ki}\right)^2 + \lambda \sum_{j=1}^k b_j^2$$
+  
+  where $\lambda > 0$ is the **ridge shrinkage factor**
+  
+- The **penalty term** $\lambda \sum_{j=1}^k b_j^2$ penalizes the estimator for choosing a large coefficient estimate
+
+## Estmating the ridge shrinkage factor
+
+- The ridge regression depends on the shrinkage factor $\lambda$
+
+- Choose $\lambda$ to minimize the estimated $MSPE$, for example estimated by $m$-fold cross validation
+
+- Estimate $MSPE$ by $m$-fold cross validation for different values of $\lambda$; pick $\lambda$ to get the lowest estimated $MSPE$
+
+# Lasso regression
+
+## Sparse models
+
+- Ridge regression uses all the regressors to make the prediction (no coefficients are exactly zero!)
+
+- Sometimes, only a few of many regressors are useful: use **sparse model** for prediction (less need for shrinkage)
+
+- **Lasso regression** provides a way to select the sparse model, estimating their coefficients with a modest amount of shrinkage
+
+## Lasso regression
+
+- The **lasso estimator** also minimizes the **penalized sum of squared residuals**
+
+  $$\frac{1}{n}\sum_{i=1}^n \left(Y_i - b_1 X_{1i} - \ldots - b_k X_{ki}\right)^2 + \lambda \sum_{j=1}^k |b_j|$$
+  
+  where $\lambda > 0$ is the **lasso shrinkage factor**
+  
+- The **lasso penalty term** $\lambda \sum_{j=1}^k |b_j|$ involves sum of the absolute values of the coefficient estimates
+
+- The lasso penalty term implies that the lasso estimator will estimate many coefficient to exactly 0
+
+- The $\lambda$ can be chosen to minimize estimated $MSPE$
+
+# Summary
+
+## Summary
+
+- Shrinkage estimators utilize the bias-variance trade-off in prediction to improve predictions when there are many predictors relative to observations
+
+- Ridge regression penalizes large coefficient values: biased, but low variance
+
+- Lasso regression selects relevant predictors with some shrinkage: biased, but low variance
